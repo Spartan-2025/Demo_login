@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal - My Submissions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Light Mode Colors & Style */
+        :root {
+            --text-color-light: #374151;
+            --text-color-secondary-light: #6B7280;
+            --accent-gradient-light: linear-gradient(90deg, #F59E0B, #F97316);
+            --secondary-btn-bg-light: #F3F4F6;
+        }
+        /* Dark Mode Colors & Style */
+        :root {
+            --bg-color-dark: #1E293B;
+            --card-bg-color-dark: #293548;
+            --text-color-dark: #E2E8F0;
+            --text-color-secondary-dark: #94A3B8;
+            --border-color-dark: #334155;
+            --input-bg-color-dark: #1E293B;
+            --accent-gradient-dark: linear-gradient(90deg, #F59E0B, #FB923C);
+            --secondary-btn-bg-dark: #334155;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color-dark); 
+            color: var(--text-color-dark); 
+            transition: background-image 0.5s, background-color 0.5s, color 0.3s; 
+            background-attachment: fixed;
+        }
+        body.light-mode {
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color-light);
+        }
+        
+        .card {
+            background-color: var(--card-bg-color-dark); border: 1px solid var(--border-color-dark); border-radius: 0.75rem;
+            padding: 1.5rem; transition: all 0.2s ease-in-out;
+        }
+        
+        .submission-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        body.light-mode .card {
+            background-color: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: none; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-primary { background-image: var(--accent-gradient-dark); color: #ffffff; }
+        body.light-mode .btn-primary { background-image: var(--accent-gradient-light); }
+        
+        h1, h2, h3, .main-title { color: var(--text-color-dark); }
+        body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode .main-title { color: var(--text-color-light); }
+        
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 0.5rem; }
+        .theme-switch { display: inline-block; height: 26px; position: relative; width: 50px; }
+        .theme-switch input { display:none; }
+        .slider { background-color: #334155; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; }
+        body.light-mode .slider { background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; }
+        .status-approved { background-color: #10B981; color: white; }
+        .status-disapproved { background-color: #EF4444; color: white; }
+        .status-pending { background-color: #F59E0B; color: white; }
+        
+        #user-dropdown { position: absolute; top: 100%; right: 0; z-index: 10; margin-top: 0.5rem; border-radius: 0.75rem; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .edit-btn { position: absolute; bottom: 0.5rem; right: 0.5rem; background-color: rgba(0,0,0,0.5); color: white; border-radius: 9999px; width: 2rem; height: 2rem; display: grid; place-items: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="simulation-bar" class="bg-gray-900 text-white p-2 text-center text-sm">
+        <label for="user-selector">Simulating as:</label>
+        <select id="user-selector" class="bg-gray-700 rounded p-1">
+            <option value="employee">Employee</option>
+            <option value="hr">HR Manager</option>
+            <option value="management">Management</option>
+            <option value="finance">Finance</option>
+        </select>
+    </div>
+    <div class="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+            <div class="flex items-center gap-4">
+                 <a href="https://www.fortezzainteriors.com/" target="_blank" rel="noopener noreferrer">
+                    <img src="https://static.wixstatic.com/media/dcd70c_5a9b8ebe8f03433f85f2816dcfe056aa~mv2.png/v1/fill/w_100,h_148,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Artboard%201_edited_edited.png" alt="Fortezza Logo" class="h-12 w-auto">
+                 </a>
+                 <a href="https://www.spartanathletique.com/" target="_blank" rel="noopener noreferrer">
+                    <img src="https://static.wixstatic.com/media/6e911f_69e688687e564d658c2add64c6e4b16b~mv2.png/v1/fill/w_142,h_184,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/wgite%20.png" alt="Spartan Logo" class="h-12 w-auto">
+                 </a>
+                 <div><h1 class="text-2xl sm:text-3xl font-bold main-title">Internal Forms Portal</h1></div>
+            </div>
+            <div class="flex items-center gap-4">
+                 <div class="theme-switch-wrapper">
+                    <i class="fas fa-sun"></i><label class="theme-switch" for="theme-toggle"><input type="checkbox" id="theme-toggle"><span class="slider round"></span></label><i class="fas fa-moon"></i>
+                </div>
+                 <div class="relative">
+                    <button id="user-icon" class="text-2xl"><i class="fas fa-user-circle"></i></button>
+                    <div id="user-dropdown" class="card w-48 hidden"><a href="#" class="block px-4 py-2 text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></div>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div id="profile-section" class="card mb-8">
+                <div class="relative h-32 md:h-48 rounded-t-lg bg-cover bg-center" id="profile-banner">
+                    <button id="edit-banner-btn" class="edit-btn"><i class="fas fa-camera"></i></button>
+                    <input type="file" id="banner-input" class="hidden" accept="image/*">
+                </div>
+                <div class="p-6">
+                    <div class="flex items-end -mt-16">
+                        <div class="relative">
+                            <img id="profile-pic" class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 object-cover" alt="Profile Picture">
+                            <button id="edit-pic-btn" class="edit-btn"><i class="fas fa-camera"></i></button>
+                            <input type="file" id="pic-input" class="hidden" accept="image/*">
+                        </div>
+                        <div class="ml-4">
+                            <h2 id="profile-name" class="text-2xl font-bold main-title"></h2>
+                            <p id="profile-designation" class="text-sm"></p>
+                            <p id="profile-id" class="text-xs mt-1 opacity-70"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <h2 id="dashboard-title" class="text-2xl font-bold main-title"></h2>
+                <button id="create-form-btn" class="btn btn-primary w-full sm:w-auto"><i class="fas fa-plus mr-2"></i>Create New Form</button>
+            </div>
+            <div id="submissions-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </main>
+    </div>
+
+    <!-- Create New Form Modal -->
+    <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4" style="backdrop-filter: blur(5px);">
+        <div class="card w-full max-w-2xl">
+             <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold main-title">Select a Form to Create</h2>
+                <button id="close-modal-btn" class="text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                <a href="#" class="card submission-card p-6"><i class="fas fa-receipt text-4xl mb-2"></i><span class="font-semibold">Reimbursement</span></a>
+                <a href="#" class="card submission-card p-6"><i class="fas fa-plane-departure text-4xl mb-2"></i><span class="font-semibold">Leave Request</span></a>
+                <a href="#" class="card submission-card p-6"><i class="fas fa-laptop-medical text-4xl mb-2"></i><span class="font-semibold">IT Support</span></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK DATA ---
+        const userProfiles = {
+            employee: { name: 'Alex Doe', designation: 'Sales Executive', id: 'EMP-0123', pic: 'https://placehold.co/128x128/F97316/FFFFFF?text=A', banner: 'https://placehold.co/1200x300/1E293B/94A3B8?text=Employee+Portal' },
+            hr: { name: 'Samantha Ray', designation: 'HR Manager', id: 'EMP-0005', pic: 'https://placehold.co/128x128/10B981/FFFFFF?text=S', banner: 'https://placehold.co/1200x300/10B981/FFFFFF?text=HR+Dashboard' },
+            management: { name: 'John Carter', designation: 'General Manager', id: 'EMP-0002', pic: 'https://placehold.co/128x128/3B82F6/FFFFFF?text=J', banner: 'https://placehold.co/1200x300/3B82F6/FFFFFF?text=Management+View' },
+            finance: { name: 'Maria Garcia', designation: 'Finance Controller', id: 'EMP-0003', pic: 'https://placehold.co/128x128/A855F7/FFFFFF?text=M', banner: 'https://placehold.co/1200x300/A855F7/FFFFFF?text=Finance+Dashboard' }
+        };
+        const employeeSubmissions = [
+            { id: 'R001', title: 'Reimbursement Request', amount: 350.50, date: '2025-09-28', status: 'Approved' },
+            { id: 'L001', title: 'Leave Request', date: '2025-09-25', status: 'Approved' },
+        ];
+        const approvalsQueue = [
+            { id: 'R002', title: 'Reimbursement Request', amount: 120.00, date: '2025-10-01', status: 'Pending', submittedBy: 'Alex Doe', employeeId: 'EMP-0123' },
+            { id: 'IT001', title: 'IT Support Ticket', date: '2025-10-02', status: 'Pending', submittedBy: 'Jane Smith', employeeId: 'EMP-0456' },
+            { id: 'R003', title: 'Reimbursement Request', amount: 85.75, date: '2025-09-15', status: 'Disapproved', submittedBy: 'Alex Doe', employeeId: 'EMP-0123' },
+        ];
+
+        // --- RENDER FUNCTIONS ---
+        const submissionsList = document.getElementById('submissions-list');
+        const profileBanner = document.getElementById('profile-banner');
+        const profilePic = document.getElementById('profile-pic');
+        const profileName = document.getElementById('profile-name');
+        const profileDesignation = document.getElementById('profile-designation');
+        const profileId = document.getElementById('profile-id');
+        const dashboardTitle = document.getElementById('dashboard-title');
+
+        function renderProfile(role) {
+            const user = userProfiles[role];
+            profileBanner.style.backgroundImage = `url('${user.banner}')`;
+            profilePic.src = user.pic;
+            profilePic.style.borderColor = getComputedStyle(document.body).getPropertyValue('--card-bg-color-dark');
+            if (document.body.classList.contains('light-mode')) {
+                profilePic.style.borderColor = 'rgba(255, 255, 255, 0.55)';
+            }
+            profileName.textContent = user.name;
+            profileDesignation.textContent = user.designation;
+            profileId.textContent = `ID: ${user.id}`;
+        }
+
+        function renderDashboard(role) {
+            if (role === 'employee') {
+                dashboardTitle.textContent = 'My Submissions';
+                renderCards(employeeSubmissions, 'employee');
+            } else {
+                dashboardTitle.textContent = 'Approvals Queue';
+                renderCards(approvalsQueue, 'approver');
+            }
+        }
+
+        function renderCards(data, viewType) {
+            submissionsList.innerHTML = '';
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card submission-card';
+                let approverInfo = '';
+                if(viewType === 'approver') {
+                    approverInfo = `
+                        <div class="mt-4 pt-4 border-t" style="border-color: var(--border-color-dark)">
+                            <p class="text-xs opacity-70">Submitted by:</p>
+                            <p class="font-semibold">${item.submittedBy} (${item.employeeId})</p>
+                        </div>
+                    `;
+                }
+                card.innerHTML = `<div class="flex justify-between items-start"><h3 class="font-bold text-lg mb-2 main-title">${item.title}</h3><div class="status-badge ${item.status.toLowerCase() === 'approved' ? 'status-approved' : item.status.toLowerCase() === 'disapproved' ? 'status-disapproved' : 'status-pending'}">${item.status}</div></div><p class="text-sm mb-4">Submitted on: ${new Date(item.date).toLocaleDateString()}</p>${item.amount ? `<p class="text-2xl font-bold main-title">AED ${item.amount.toFixed(2)}</p>` : ''}${approverInfo}`;
+                card.addEventListener('click', () => { alert(`This would open the detailed view for submission #${item.id}.`); });
+                submissionsList.appendChild(card);
+            });
+        }
+        
+        function updateAll(role) {
+            renderProfile(role);
+            renderDashboard(role);
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('user-selector').addEventListener('change', (e) => updateAll(e.target.value));
+        
+        const themeToggle = document.getElementById('theme-toggle');
+        function setTheme(isLight) {
+            document.body.classList.toggle('light-mode', isLight);
+            themeToggle.checked = isLight;
+            localStorage.setItem('lightMode', isLight);
+            updateAll(document.getElementById('user-selector').value);
+        }
+        themeToggle.addEventListener('change', () => setTheme(themeToggle.checked));
+        
+        const userIcon = document.getElementById('user-icon');
+        const userDropdown = document.getElementById('user-dropdown');
+        userIcon.addEventListener('click', (e) => { userDropdown.classList.toggle('hidden'); e.stopPropagation(); });
+        document.addEventListener('click', (e) => { if (!userDropdown.contains(e.target) && !userIcon.contains(e.target)) { userDropdown.classList.add('hidden'); }});
+        
+        const formModal = document.getElementById('form-modal');
+        document.getElementById('create-form-btn').addEventListener('click', () => formModal.classList.remove('hidden'));
+        document.getElementById('close-modal-btn').addEventListener('click', () => formModal.classList.add('hidden'));
+
+        document.getElementById('edit-banner-btn').addEventListener('click', () => document.getElementById('banner-input').click());
+        document.getElementById('edit-pic-btn').addEventListener('click', () => document.getElementById('pic-input').click());
+
+        function handleImageUpload(event, element) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (element.tagName === 'IMG') {
+                        element.src = e.target.result;
+                    } else {
+                        element.style.backgroundImage = `url('${e.target.result}')`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        document.getElementById('banner-input').addEventListener('change', (e) => handleImageUpload(e, profileBanner));
+        document.getElementById('pic-input').addEventListener('change', (e) => handleImageUpload(e, profilePic));
+
+        // --- INITIALIZATION ---
+        setTheme(localStorage.getItem('lightMode') === 'true');
+        updateAll('employee');
+    </script>
+</body>
+</html>
+
